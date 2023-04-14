@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MyAPI.Dto;
 using MyAPI.Entities;
+using MyAPI.Interfaces;
 
 namespace MyAPI.Controllers
 {
@@ -9,26 +10,22 @@ namespace MyAPI.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        // quản lý thông tin sinh viên  bằng collection List
-        public static List<Student> _student = new List<Student>();
-        public static int _id;
+        private readonly IStudentServices _studentServices;
+        public StudentController(IStudentServices studentServices) 
+        {
+            _studentServices = studentServices;
+        }
         /// <summary>
         /// Thêm sinh viên
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPost("create")]
+        [HttpPost("")]
         public IActionResult Create(CreateStudentDto input)
         {
             try
             {
-                _student.Add(new Student
-                {
-                    StudentId = input.StudentId,
-                    DateOfBirth = input.DateOfBirth,
-                    Id = ++_id,
-                    StudentName = input.StudentName,
-                });
+                _studentServices.CreateStudent(input);
                 return Ok(new { message = "Dữ liệu đã được khởi tạo" });
             }
             catch (Exception ex)
@@ -41,15 +38,12 @@ namespace MyAPI.Controllers
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [HttpPut("update/{id}")]
-        public IActionResult Create(int id, CreateStudentDto input)
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, CreateStudentDto input)
         {
             try
             {
-                var findUser = _student.FirstOrDefault(x => x.Id == id);
-                findUser.StudentId = input.StudentId;
-                findUser.StudentName = input.StudentName;
-                findUser.DateOfBirth = input.DateOfBirth;
+                _studentServices.UpdateStudent(id, input);
                 return Ok(new { message = "Dữ liệu đã được cập nhật" });
             }
             catch (Exception ex)
@@ -61,12 +55,12 @@ namespace MyAPI.Controllers
         /// Lấy ra thông tin chi tiết sinh viên
         /// </summary>
         /// <returns></returns>
-        [HttpGet("{id}")]
-        public IActionResult GetAll(int id)
+        [HttpGet("")]
+        public IActionResult GetAll()
         {
             try
             {
-                return Ok(_student.FirstOrDefault(sv => sv.Id == id));
+                return Ok(_studentServices.GetStudent());
             }
             catch(Exception ex) 
             {
@@ -78,12 +72,12 @@ namespace MyAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("remove/{id}")]
+        [HttpDelete("{id}")]
         public IActionResult Remove(int id)
         {
             try
             {
-                _student.Remove(_student.FirstOrDefault(user => user.Id == id));
+                _studentServices.RemoveStudent(id);
                 return Ok("Dữ liệu đã được xóa");
             }
             catch (Exception ex)
